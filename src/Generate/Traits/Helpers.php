@@ -1,23 +1,27 @@
-<?php namespace Brackets\AdminGenerator\Generate\Traits;
+<?php
 
+namespace Brackets\AdminGenerator\Generate\Traits;
+
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
-trait Helpers {
-
-    public function option($key = null) {
+trait Helpers
+{
+    public function option($key = null)
+    {
         return ($key === null || $this->hasOption($key)) ? parent::option($key) : null;
     }
 
     /**
      * Build the directory for the class if necessary.
      *
-     * @param  string  $path
+     * @param string $path
      * @return string
      */
-    protected function makeDirectory($path)
+    protected function makeDirectory(string $path): string
     {
-        if (! $this->files->isDirectory(dirname($path))) {
+        if (!$this->files->isDirectory(dirname($path))) {
             $this->files->makeDirectory(dirname($path), 0777, true, true);
         }
 
@@ -27,22 +31,21 @@ trait Helpers {
     /**
      * Determine if the file already exists.
      *
-     * @param $path
-     * @return bool
+     * @param string $path
+     * @return string|bool
      */
-    protected function alreadyExists($path)
+    protected function alreadyExists(string $path)
     {
-        return $this->files->exists($path);
+        return $this->files->exists($path) ? $path : false;
     }
-
 
     /**
      * Check if provided relation has a table
      *
      * @param $relationTable
-     * @return mixed
+     * @return bool
      */
-    public function checkRelationTable($relationTable)
+    public function checkRelationTable($relationTable): bool
     {
         return Schema::hasTable($relationTable);
     }
@@ -51,47 +54,43 @@ trait Helpers {
      * sets Relation of Belongs To Many type
      *
      * @param $belongsToMany
-     * @return mixed
+     * @return void
      */
     //TODO add other relation types
     public function setBelongToManyRelation($belongsToMany)
     {
-        $this->relations['belongsToMany'] = collect(explode(',', $belongsToMany))->filter(function($belongToManyRelation) {
+        $this->relations['belongsToMany'] = collect(explode(',', $belongsToMany))->filter(function ($belongToManyRelation) {
             return $this->checkRelationTable($belongToManyRelation);
-        })->map(function($belongsToMany) {
+        })->map(function ($belongsToMany) {
             return [
                 'current_table' => $this->tableName,
                 'related_table' => $belongsToMany,
-                'related_model' => ($belongsToMany == 'roles') ? "Spatie\\Permission\\Models\\Role" : "App\\Models\\". Str::studly(Str::singular($belongsToMany)),
-                'related_model_class' => ($belongsToMany == 'roles') ? "Spatie\\Permission\\Models\\Role::class" : "App\\Models\\". Str::studly(Str::singular($belongsToMany)).'::class',
+                'related_model' => ($belongsToMany == 'roles') ? "Spatie\\Permission\\Models\\Role" : "App\\Models\\" . Str::studly(Str::singular($belongsToMany)),
+                'related_model_class' => ($belongsToMany == 'roles') ? "Spatie\\Permission\\Models\\Role::class" : "App\\Models\\" . Str::studly(Str::singular($belongsToMany)) . '::class',
                 'related_model_name' => Str::studly(Str::singular($belongsToMany)),
                 'related_model_name_plural' => Str::studly($belongsToMany),
                 'related_model_variable_name' => lcfirst(Str::singular(class_basename($belongsToMany))),
-                'relation_table' => trim(collect([$this->tableName, $belongsToMany])->sortBy(function($table) {
+                'relation_table' => trim(collect([$this->tableName, $belongsToMany])->sortBy(function ($table) {
                     return $table;
-                })->reduce(function($relationTable, $table) {
-                    return $relationTable.'_'.$table;
+                })->reduce(function ($relationTable, $table) {
+                    return $relationTable . '_' . $table;
                 }), '_'),
-                'foreign_key' => Str::singular($this->tableName).'_id',
-                'related_key' => Str::singular($belongsToMany).'_id',
+                'foreign_key' => Str::singular($this->tableName) . '_id',
+                'related_key' => Str::singular($belongsToMany) . '_id',
             ];
         })->keyBy('related_table');
     }
 
-
     /**
      * Determine if the content is already present in the file
      *
-     * @param $path
-     * @param $content
+     * @param string $path
+     * @param string $content
      * @return bool
+     * @throws FileNotFoundException
      */
-    protected function alreadyAppended($path, $content)
+    protected function alreadyAppended(string $path, string $content): bool
     {
-        if (strpos($this->files->get($path), $content) !== false) {
-            return true;
-        }
-        return false;
+        return strpos($this->files->get($path), $content) !== false;
     }
-
 }

@@ -1,4 +1,6 @@
-<?php namespace Brackets\AdminGenerator;
+<?php
+
+namespace Brackets\AdminGenerator;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -34,7 +36,7 @@ class AdminGeneratorServiceProvider extends ServiceProvider
             Generate\Export::class,
         ]);
 
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'brackets/admin-generator');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'brackets/admin-generator');
     }
 
     /**

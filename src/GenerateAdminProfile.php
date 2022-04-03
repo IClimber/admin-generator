@@ -21,6 +21,11 @@ class GenerateAdminProfile extends Command
     protected $name = 'admin:generate:admin-user:profile';
 
     /**
+     * @var Filesystem
+     */
+    protected $files;
+
+    /**
      * The console command description.
      *
      * @var string
@@ -30,7 +35,7 @@ class GenerateAdminProfile extends Command
     /**
      * Create a new controller creator command instance.
      *
-     * @param  \Illuminate\Filesystem\Filesystem $files
+     * @param Filesystem $files
      */
     public function __construct(Filesystem $files)
     {
@@ -42,7 +47,7 @@ class GenerateAdminProfile extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
     public function handle()
     {
@@ -109,14 +114,14 @@ class GenerateAdminProfile extends Command
         $this->info('Generating whole admin "My Profile" finished');
     }
 
-    protected function getArguments()
+    protected function getArguments(): array
     {
         return [
             ['table_name', InputArgument::OPTIONAL, 'Name of the existing table'],
         ];
     }
 
-    protected function getOptions()
+    protected function getOptions(): array
     {
         return [
             ['model-name', 'm', InputOption::VALUE_OPTIONAL, 'Specify custom model name'],

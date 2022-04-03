@@ -1,6 +1,6 @@
 {
-    "name": "brackets/admin-generator",
-    "description": "Laravel 8 CRUD generator for brackets/craftable",
+    "name": "iclimber/admin-generator",
+    "description": "Laravel 9 CRUD generator for brackets/craftable",
     "keywords": [
         "generator",
         "make",

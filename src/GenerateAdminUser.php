@@ -1,12 +1,14 @@
-<?php namespace Brackets\AdminGenerator;
+<?php
+
+namespace Brackets\AdminGenerator;
 
 use Brackets\AdminGenerator\Generate\Traits\FileManipulations;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Console\Command;
+use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Console\Input\InputOption;
 
-class GenerateAdminUser extends Command {
-
+class GenerateAdminUser extends Command
+{
     use FileManipulations;
 
     /**
@@ -15,6 +17,11 @@ class GenerateAdminUser extends Command {
      * @var string
      */
     protected $name = 'admin:generate:admin-user';
+
+    /**
+     * @var Filesystem
+     */
+    protected $files;
 
     /**
      * The console command description.
@@ -26,7 +33,7 @@ class GenerateAdminUser extends Command {
     /**
      * Create a new controller creator command instance.
      *
-     * @param  \Illuminate\Filesystem\Filesystem  $files
+     * @param Filesystem $files
      */
     public function __construct(Filesystem $files)
     {
@@ -38,7 +45,7 @@ class GenerateAdminUser extends Command {
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
     public function handle()
     {
@@ -48,15 +55,15 @@ class GenerateAdminUser extends Command {
         $exportOption = $this->option('with-export');
         $force = $this->option('force');
 
-        if(empty($modelOption)) {
+        if (empty($modelOption)) {
             $modelOption = 'AdminUser';
             $modelWithFullNamespace = 'Brackets\AdminAuth\Models\AdminUser';
         } else {
             $modelWithFullNamespace = null;
         }
 
-        if($force) {
-            if($exportOption){
+        if ($force) {
+            if ($exportOption) {
                 $this->files->delete(app_path('Exports/AdminUsersExport.php'));
             }
             $this->files->delete(app_path('Http/Controllers/Admin/AdminUsersController.php'));
@@ -151,7 +158,7 @@ class GenerateAdminUser extends Command {
             '--model-with-full-namespace' => $modelWithFullNamespace,
         ]);
 
-        if($exportOption){
+        if ($exportOption) {
             $this->call('admin:generate:export', [
                 'table_name' => $tableNameArgument,
                 '--model-with-full-namespace' => $modelWithFullNamespace,
@@ -164,15 +171,16 @@ class GenerateAdminUser extends Command {
         }
 
         $this->info('Generating whole user admin finished');
-
     }
 
-    protected function getArguments() {
+    protected function getArguments(): array
+    {
         return [
         ];
     }
 
-    protected function getOptions() {
+    protected function getOptions(): array
+    {
         return [
             ['model-name', 'm', InputOption::VALUE_OPTIONAL, 'Specify custom model name'],
             ['controller-name', 'c', InputOption::VALUE_OPTIONAL, 'Specify custom controller name'],
@@ -183,5 +191,4 @@ class GenerateAdminUser extends Command {
             ['with-export', 'e', InputOption::VALUE_NONE, 'Generate an option to Export as Excel'],
         ];
     }
-
 }
