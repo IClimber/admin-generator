@@ -1,4 +1,6 @@
-<?php namespace Brackets\AdminGenerator\Generate\Traits;
+<?php
+
+namespace Brackets\AdminGenerator\Generate\Traits;
 
 use Brackets\AdminGenerator\Generate\Controller;
 use Brackets\AdminGenerator\Generate\Model;
@@ -6,7 +8,6 @@ use Illuminate\Support\Str;
 
 trait Names
 {
-
     public $tableName;
 
     public $modelBaseName;
@@ -32,7 +33,8 @@ trait Names
         $modelName = null,
         $controllerName = null,
         $modelWithFullNamespace = null
-    ) {
+    )
+    {
         $this->tableName = $tableName;
 
         if ($this instanceof Model) {
@@ -100,7 +102,7 @@ trait Names
         $this->titlePlural = str_replace(['_'], ' ', Str::title($this->tableName));
     }
 
-    public function valueWithoutId($string)
+    public function valueWithoutId(string $string): string
     {
         if (Str::endsWith(Str::lower($string), '_id')) {
             $string = Str::substr($string, 0, -3);
@@ -108,5 +110,4 @@ trait Names
 
         return Str::ucfirst(str_replace('_', ' ', $string));
     }
-
 }

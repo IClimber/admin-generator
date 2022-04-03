@@ -1,10 +1,12 @@
-<?php namespace Brackets\AdminGenerator\Generate;
+<?php
 
-use Illuminate\Support\Str;
+namespace Brackets\AdminGenerator\Generate;
+
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Symfony\Component\Console\Input\InputOption;
 
-class ViewFullForm extends ViewGenerator {
-
+class ViewFullForm extends ViewGenerator
+{
     /**
      * The name and signature of the console command.
      *
@@ -55,7 +57,8 @@ class ViewFullForm extends ViewGenerator {
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
+     * @throws FileNotFoundException
      */
     public function handle()
     {
@@ -64,9 +67,9 @@ class ViewFullForm extends ViewGenerator {
         //TODO check if exists
         //TODO make global for all generator
         //TODO also with prefix
-        if(!empty($template = $this->option('template'))) {
-            $this->view = 'templates.'.$template.'.full-form';
-            $this->viewJs = 'templates.'.$template.'.form-js';
+        if (!empty($template = $this->option('template'))) {
+            $this->view = 'templates.' . $template . '.full-form';
+            $this->viewJs = 'templates.' . $template . '.form-js';
         }
 
         $this->fileName = $this->option('file-name') ?: $this->modelViewsDirectory;
@@ -76,20 +79,20 @@ class ViewFullForm extends ViewGenerator {
         }
 
         $this->route = $this->option('route');
-        if (!$this->route){
-            if ($this->option('file-name')){
-                $this->route = 'admin/'.$this->fileName;
+        if (!$this->route) {
+            if ($this->option('file-name')) {
+                $this->route = 'admin/' . $this->fileName;
             } else {
-                $this->route = 'admin/'.$this->resource.'/update';
+                $this->route = 'admin/' . $this->resource . '/update';
             }
         }
 
-        $viewPath = resource_path('views/admin/'.$this->fileName.'.blade.php');
+        $viewPath = resource_path('views/admin/' . $this->fileName . '.blade.php');
         if ($this->alreadyExists($viewPath) && !$force) {
-            $this->error('File '.$viewPath.' already exists!');
+            $this->error('File ' . $viewPath . ' already exists!');
         } else {
             if ($this->alreadyExists($viewPath) && $force) {
-                $this->warn('File '.$viewPath.' already exists! File will be deleted.');
+                $this->warn('File ' . $viewPath . ' already exists! File will be deleted.');
                 $this->files->delete($viewPath);
             }
 
@@ -97,80 +100,80 @@ class ViewFullForm extends ViewGenerator {
 
             $this->files->put($viewPath, $this->buildForm());
 
-            $this->info('Generating '.$viewPath.' finished');
+            $this->info('Generating ' . $viewPath . ' finished');
         }
 
-        $formJsPath = resource_path('js/admin/'.$this->formJsRelativePath.'/Form.js');
+        $formJsPath = resource_path('js/admin/' . $this->formJsRelativePath . '/Form.js');
         $bootstrapJsPath = resource_path('js/admin/index.js');
 
         if ($this->alreadyExists($formJsPath) && !$force) {
-            $this->error('File '.$formJsPath.' already exists!');
+            $this->error('File ' . $formJsPath . ' already exists!');
         } else {
             if ($this->alreadyExists($formJsPath) && $force) {
-                $this->warn('File '.$formJsPath.' already exists! File will be deleted.');
+                $this->warn('File ' . $formJsPath . ' already exists! File will be deleted.');
                 $this->files->delete($formJsPath);
             }
 
             $this->makeDirectory($formJsPath);
 
             $this->files->put($formJsPath, $this->buildFormJs());
-            $this->info('Generating '.$formJsPath.' finished');
-
+            $this->info('Generating ' . $formJsPath . ' finished');
         }
 
-		$indexJsPath = resource_path('js/admin/'.$this->formJsRelativePath.'/index.js');
-		if ($this->alreadyExists($indexJsPath) && !$force) {
-			$this->error('File '.$indexJsPath.' already exists!');
-		} else {
-			if ($this->alreadyExists($indexJsPath) && $force) {
-				$this->warn('File '.$indexJsPath.' already exists! File will be deleted.');
-				$this->files->delete($indexJsPath);
-			}
-			$this->makeDirectory($indexJsPath);
-		}
+        $indexJsPath = resource_path('js/admin/' . $this->formJsRelativePath . '/index.js');
+        if ($this->alreadyExists($indexJsPath) && !$force) {
+            $this->error('File ' . $indexJsPath . ' already exists!');
+        } else {
+            if ($this->alreadyExists($indexJsPath) && $force) {
+                $this->warn('File ' . $indexJsPath . ' already exists! File will be deleted.');
+                $this->files->delete($indexJsPath);
+            }
+            $this->makeDirectory($indexJsPath);
+        }
 
-		if ($this->appendIfNotAlreadyAppended($indexJsPath, "import './Form';".PHP_EOL)){
-			$this->info('Appending Form to '.$indexJsPath.' finished');
-		};
-		if ($this->appendIfNotAlreadyAppended($bootstrapJsPath, "import './". $this->formJsRelativePath ."';".PHP_EOL)){
-			$this->info('Appending '.$this->formJsRelativePath.'/index.js to '.$bootstrapJsPath.' finished');
-		};
-
+        if ($this->appendIfNotAlreadyAppended($indexJsPath, "import './Form';" . PHP_EOL)) {
+            $this->info('Appending Form to ' . $indexJsPath . ' finished');
+        }
+        if ($this->appendIfNotAlreadyAppended($bootstrapJsPath, "import './" . $this->formJsRelativePath . "';" . PHP_EOL)) {
+            $this->info('Appending ' . $this->formJsRelativePath . '/index.js to ' . $bootstrapJsPath . ' finished');
+        }
     }
 
-    protected function buildForm() {
-
-        return view('brackets/admin-generator::'.$this->view, [
+    protected function buildForm(): string
+    {
+        return view('brackets/admin-generator::' . $this->view, [
             'modelBaseName' => $this->modelBaseName,
             'modelVariableName' => $this->modelVariableName,
             'route' => $this->route,
             'modelJSName' => $this->formJsRelativePath,
             'modelDotNotation' => $this->modelDotNotation,
             'modelLangFormat' => $this->modelLangFormat,
-            'modelTitle' => $this->readColumnsFromTable($this->tableName)->filter(function($column){
+            'modelTitle' => $this->readColumnsFromTable($this->tableName)->filter(function ($column) {
                 return in_array($column['name'], ['title', 'name', 'first_name', 'email']);
-            })->first(null, ['name'=>'id'])['name'],
+            })->first(null, ['name' => 'id'])['name'],
 
-            'columns' => $this->getVisibleColumns($this->tableName, $this->modelVariableName)->sortByDesc(function($column) {
+            'columns' => $this->getVisibleColumns($this->tableName, $this->modelVariableName)->sortByDesc(function ($column) {
                 return $column['type'] == "json";
             }),
-            'hasTranslatable' => $this->readColumnsFromTable($this->tableName)->filter(function($column) {
-                return $column['type'] == "json";
-            })->count() > 0,
+            'hasTranslatable' => $this->readColumnsFromTable($this->tableName)->filter(function ($column) {
+                    return $column['type'] == "json";
+                })->count() > 0,
             'translatableTextarea' => ['perex', 'text'],
             'relations' => $this->relations,
         ])->render();
     }
 
-    protected function buildFormJs() {
-        return view('brackets/admin-generator::'.$this->viewJs, [
+    protected function buildFormJs(): string
+    {
+        return view('brackets/admin-generator::' . $this->viewJs, [
             'modelJSName' => $this->formJsRelativePath,
 
             'columns' => $this->getVisibleColumns($this->tableName, $this->modelVariableName),
         ])->render();
     }
 
-    protected function getOptions() {
+    protected function getOptions(): array
+    {
         return [
             ['model-name', 'm', InputOption::VALUE_OPTIONAL, 'Generates a code for the given model'],
             ['template', 't', InputOption::VALUE_OPTIONAL, 'Specify custom template'],
@@ -179,5 +182,4 @@ class ViewFullForm extends ViewGenerator {
             ['force', 'f', InputOption::VALUE_NONE, 'Force will delete files before regenerating full form'],
         ];
     }
-
 }

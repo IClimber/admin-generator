@@ -1,9 +1,11 @@
-<?php namespace Brackets\AdminGenerator\Generate;
+<?php
+
+namespace Brackets\AdminGenerator\Generate;
 
 use Symfony\Component\Console\Input\InputOption;
 
-class ImpersonalLoginRequest extends ClassGenerator {
-
+class ImpersonalLoginRequest extends ClassGenerator
+{
     /**
      * The name and signature of the console command.
      *
@@ -21,19 +23,19 @@ class ImpersonalLoginRequest extends ClassGenerator {
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
     public function handle()
     {
         $force = $this->option('force');
 
-        if ($this->generateClass($force)){
-            $this->info('Generating '.$this->classFullName.' finished');
+        if ($this->generateClass($force)) {
+            $this->info('Generating ' . $this->classFullName . ' finished');
         }
     }
 
-    protected function buildClass() {
-
+    protected function buildClass(): string
+    {
         return view('brackets/admin-generator::templates.admin-user.impersonal-login-request', [
             'modelBaseName' => $this->modelBaseName,
             'modelDotNotation' => $this->modelDotNotation,
@@ -42,26 +44,27 @@ class ImpersonalLoginRequest extends ClassGenerator {
         ])->render();
     }
 
-    protected function getOptions() {
+    protected function getOptions(): array
+    {
         return [
             ['model-name', 'm', InputOption::VALUE_OPTIONAL, 'Generates a code for the given model'],
             ['force', 'f', InputOption::VALUE_NONE, 'Force will delete files before regenerating request'],
         ];
     }
 
-    public function generateClassNameFromTable($tableName) {
-        return 'ImpersonalLogin'.$this->modelBaseName;
+    public function generateClassNameFromTable(string $tableName): string
+    {
+        return 'ImpersonalLogin' . $this->modelBaseName;
     }
 
     /**
      * Get the default namespace for the class.
      *
-     * @param  string  $rootNamespace
+     * @param string $rootNamespace
      * @return string
      */
-    protected function getDefaultNamespace($rootNamespace)
+    protected function getDefaultNamespace(string $rootNamespace): string
     {
-        return $rootNamespace.'\Http\Requests\Admin\\'.$this->modelWithNamespaceFromDefault;
+        return $rootNamespace . '\Http\Requests\Admin\\' . $this->modelWithNamespaceFromDefault;
     }
-
 }

@@ -1,9 +1,12 @@
-<?php namespace Brackets\AdminGenerator\Generate;
+<?php
 
+namespace Brackets\AdminGenerator\Generate;
+
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Symfony\Component\Console\Input\InputOption;
 
-class Lang extends FileAppender {
-
+class Lang extends FileAppender
+{
     /**
      * The name and signature of the console command.
      *
@@ -35,26 +38,27 @@ class Lang extends FileAppender {
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
+     * @throws FileNotFoundException
      */
     public function handle()
     {
 //        //TODO check if exists
 //        //TODO make global for all generator
 //        //TODO also with prefix
-        if(!empty($template = $this->option('template'))) {
-            $this->view = 'templates.'.$template.'.lang';
+        if (!empty($template = $this->option('template'))) {
+            $this->view = 'templates.' . $template . '.lang';
         }
 
-        if(empty($locale = $this->option('locale'))) {
+        if (empty($locale = $this->option('locale'))) {
             $locale = 'en';
         }
 
-        if($this->option('with-export')){
+        if ($this->option('with-export')) {
             $this->export = true;
         }
 
-        if(!empty($belongsToMany = $this->option('belongs-to-many'))) {
+        if (!empty($belongsToMany = $this->option('belongs-to-many'))) {
             $this->setBelongToManyRelation($belongsToMany);
         }
 
@@ -62,13 +66,18 @@ class Lang extends FileAppender {
 
         // TODO name-spaced model names should be probably inserted as a sub-array in a translation file..
 
-        if ($this->replaceIfNotPresent(resource_path('lang/'.$locale.'/admin.php'),  "// Do not delete me :) I'm used for auto-generation".PHP_EOL,$this->buildClass().PHP_EOL, "<?php".PHP_EOL.PHP_EOL."return [".PHP_EOL."    // Do not delete me :) I'm used for auto-generation".PHP_EOL."];")){
+        $langPath = (function_exists('lang_path'))
+            ? lang_path($locale . '/admin.php')
+            : resource_path('lang/' . $locale . '/admin.php');
+
+        if ($this->replaceIfNotPresent($langPath, "// Do not delete me :) I'm used for auto-generation" . PHP_EOL, $this->buildClass() . PHP_EOL, "<?php" . PHP_EOL . PHP_EOL . "return [" . PHP_EOL . "    // Do not delete me :) I'm used for auto-generation" . PHP_EOL . "];")) {
             $this->info('Appending translations finished');
         }
     }
 
-    protected function buildClass() {
-        return view('brackets/admin-generator::'.$this->view, [
+    protected function buildClass(): string
+    {
+        return view('brackets/admin-generator::' . $this->view, [
             'modelLangFormat' => $this->modelLangFormat,
             'modelBaseName' => $this->modelBaseName,
             'modelPlural' => $this->modelPlural,
@@ -79,13 +88,15 @@ class Lang extends FileAppender {
 
             'columns' => $this->getVisibleColumns($this->tableName, $this->modelVariableName)->map(function ($column) {
                 $column['defaultTranslation'] = $this->valueWithoutId($column['name']);
+
                 return $column;
             }),
             'relations' => $this->relations,
         ])->render();
     }
 
-    protected function getOptions() {
+    protected function getOptions(): array
+    {
         return [
             ['model-name', 'm', InputOption::VALUE_OPTIONAL, 'Generates a controller for the given model'],
             ['locale', 'c', InputOption::VALUE_OPTIONAL, 'Specify custom locale'],
@@ -94,5 +105,4 @@ class Lang extends FileAppender {
             ['with-export', 'e', InputOption::VALUE_NONE, 'Generate an option to Export as Excel'],
         ];
     }
-
 }

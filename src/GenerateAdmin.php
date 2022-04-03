@@ -1,13 +1,14 @@
-<?php namespace Brackets\AdminGenerator;
+<?php
+
+namespace Brackets\AdminGenerator;
 
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 
-class GenerateAdmin extends Command {
-
+class GenerateAdmin extends Command
+{
     /**
      * The name and signature of the console command.
      *
@@ -32,9 +33,10 @@ class GenerateAdmin extends Command {
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
-    public function handle(Filesystem $files) {
+    public function handle(Filesystem $files)
+    {
         $this->files = $files;
 
         $tableNameArgument = $this->argument('table_name');
@@ -89,7 +91,7 @@ class GenerateAdmin extends Command {
             '--force' => $force,
         ]);
 
-        if(!$withoutBulkOptions) {
+        if (!$withoutBulkOptions) {
             $this->call('admin:generate:request:bulk-destroy', [
                 'table_name' => $tableNameArgument,
                 '--model-name' => $modelOption,
@@ -125,7 +127,7 @@ class GenerateAdmin extends Command {
             '--with-export' => $exportOption,
         ]);
 
-        if($exportOption){
+        if ($exportOption) {
             $this->call('admin:generate:export', [
                 'table_name' => $tableNameArgument,
                 '--force' => $force,
@@ -141,21 +143,22 @@ class GenerateAdmin extends Command {
             ]);
 
             if ($this->option('no-interaction') || $this->confirm('Do you want to attach generated permissions to the default role now?', true)) {
-               $this->call('migrate');
+                $this->call('migrate');
             }
         }
 
         $this->info('Generating whole admin finished');
-
     }
 
-    protected function getArguments() {
+    protected function getArguments(): array
+    {
         return [
             ['table_name', InputArgument::REQUIRED, 'Name of the existing table'],
         ];
     }
 
-    protected function getOptions() {
+    protected function getOptions(): array
+    {
         return [
             ['model-name', 'm', InputOption::VALUE_OPTIONAL, 'Specify custom model name'],
             ['controller-name', 'c', InputOption::VALUE_OPTIONAL, 'Specify custom controller name'],
@@ -166,14 +169,10 @@ class GenerateAdmin extends Command {
         ];
     }
 
-    protected function shouldGeneratePermissionsMigration() {
-        if (class_exists('\Brackets\Craftable\CraftableServiceProvider')) {
-            return true;
-        }
-
-        return false;
+    protected function shouldGeneratePermissionsMigration(): bool
+    {
+        return class_exists('\Brackets\Craftable\CraftableServiceProvider');
     }
-
 }
 
 

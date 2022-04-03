@@ -1,9 +1,11 @@
-<?php namespace Brackets\AdminGenerator\Generate;
+<?php
+
+namespace Brackets\AdminGenerator\Generate;
 
 use Symfony\Component\Console\Input\InputOption;
 
-class Permissions extends ClassGenerator {
-
+class Permissions extends ClassGenerator
+{
     /**
      * The name and signature of the console command.
      *
@@ -28,32 +30,34 @@ class Permissions extends ClassGenerator {
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
     public function handle()
     {
         $force = $this->option('force');
 
-        if($this->option('without-bulk')){
+        if ($this->option('without-bulk')) {
             $this->withoutBulk = true;
         }
 
-        if ($this->generateClass($force)){
-            $this->info('Generating permissions for '.$this->modelBaseName.' finished');
+        if ($this->generateClass($force)) {
+            $this->info('Generating permissions for ' . $this->modelBaseName . ' finished');
         }
     }
 
-    protected function generateClass($force = false) {
-        $fileName = 'fill_permissions_for_'.$this->modelRouteAndViewName.'.php';
-        $path = database_path('migrations/'.date('Y_m_d_His', time()).'_'.$fileName);
+    protected function generateClass($force = false): bool
+    {
+        $fileName = 'fill_permissions_for_' . $this->modelRouteAndViewName . '.php';
+        $path = database_path('migrations/' . date('Y_m_d_His', time()) . '_' . $fileName);
 
         if ($oldPath = $this->alreadyExists($fileName)) {
             $path = $oldPath;
-            if($force) {
-                $this->warn('File '.$path.' already exists! File will be deleted.');
+            if ($force) {
+                $this->warn('File ' . $path . ' already exists! File will be deleted.');
                 $this->files->delete($path);
             } else {
-                $this->error('File '.$path.' already exists!');
+                $this->error('File ' . $path . ' already exists!');
+
                 return false;
             }
         }
@@ -61,27 +65,29 @@ class Permissions extends ClassGenerator {
         $this->makeDirectory($path);
 
         $this->files->put($path, $this->buildClass());
+
         return true;
     }
 
     /**
      * Determine if the file already exists.
      *
-     * @param $path
-     * @return bool
+     * @param string $path
+     * @return string|bool
      */
-    protected function alreadyExists($path)
+    protected function alreadyExists(string $path)
     {
         foreach ($this->files->files(database_path('migrations')) as $file) {
-            if(str_contains($file->getFilename(), $path)) {
+            if (str_contains($file->getFilename(), $path)) {
                 return $file->getPathname();
             }
         }
+
         return false;
     }
 
-    protected function buildClass() {
-
+    protected function buildClass(): string
+    {
         return view('brackets/admin-generator::permissions', [
             'modelBaseName' => $this->modelBaseName,
             'modelDotNotation' => $this->modelDotNotation,
@@ -90,7 +96,8 @@ class Permissions extends ClassGenerator {
         ])->render();
     }
 
-    protected function getOptions() {
+    protected function getOptions(): array
+    {
         return [
             ['model-name', 'm', InputOption::VALUE_OPTIONAL, 'Generates a code for the given model'],
             ['force', 'f', InputOption::VALUE_NONE, 'Force will delete files before regenerating request'],
@@ -98,7 +105,8 @@ class Permissions extends ClassGenerator {
         ];
     }
 
-    public function generateClassNameFromTable($tableName) {
-        return 'FillPermissionsFor'.$this->modelBaseName;
+    public function generateClassNameFromTable(string $tableName): string
+    {
+        return 'FillPermissionsFor' . $this->modelBaseName;
     }
 }

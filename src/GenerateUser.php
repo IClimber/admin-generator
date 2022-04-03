@@ -1,12 +1,14 @@
-<?php namespace Brackets\AdminGenerator;
+<?php
+
+namespace Brackets\AdminGenerator;
 
 use Brackets\AdminGenerator\Generate\Traits\FileManipulations;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Console\Command;
+use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Console\Input\InputOption;
 
-class GenerateUser extends Command {
-
+class GenerateUser extends Command
+{
     use FileManipulations;
 
     /**
@@ -15,6 +17,11 @@ class GenerateUser extends Command {
      * @var string
      */
     protected $name = 'admin:generate:user';
+
+    /**
+     * @var Filesystem
+     */
+    protected $files;
 
     /**
      * The console command description.
@@ -26,7 +33,7 @@ class GenerateUser extends Command {
     /**
      * Create a new controller creator command instance.
      *
-     * @param  \Illuminate\Filesystem\Filesystem  $files
+     * @param Filesystem $files
      */
     public function __construct(Filesystem $files)
     {
@@ -38,7 +45,7 @@ class GenerateUser extends Command {
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
      */
     public function handle()
     {
@@ -49,12 +56,12 @@ class GenerateUser extends Command {
         $exportOption = $this->option('with-export');
         $force = $this->option('force');
 
-        if($force) {
+        if ($force) {
             //remove all files
-            if($generateModelOption) {
+            if ($generateModelOption) {
                 $this->files->delete(app_path('Models/User.php'));
             }
-            if($exportOption){
+            if ($exportOption) {
                 $this->files->delete(app_path('Exports/UsersExport.php'));
             }
             $this->files->delete(app_path('Http/Controllers/Admin/UsersController.php'));
@@ -65,14 +72,13 @@ class GenerateUser extends Command {
             $this->info('Deleting previous files finished.');
         }
 
-        if($generateModelOption) {
+        if ($generateModelOption) {
             $this->call('admin:generate:model', [
                 'table_name' => $tableNameArgument,
                 'class_name' => $modelOption,
                 '--template' => 'user',
                 '--belongs-to-many' => 'roles',
             ]);
-
             //TODO change config/auth.php to use our user model for auth
         }
 
@@ -153,7 +159,7 @@ class GenerateUser extends Command {
             '--template' => 'user',
         ]);
 
-        if($exportOption){
+        if ($exportOption) {
             $this->call('admin:generate:export', [
                 'table_name' => $tableNameArgument,
                 '--force' => $force,
@@ -166,15 +172,16 @@ class GenerateUser extends Command {
         }
 
         $this->info('Generating whole user admin finished');
-
     }
 
-    protected function getArguments() {
+    protected function getArguments(): array
+    {
         return [
         ];
     }
 
-    protected function getOptions() {
+    protected function getOptions(): array
+    {
         return [
             ['model-name', 'm', InputOption::VALUE_OPTIONAL, 'Specify custom model name'],
             ['controller-name', 'c', InputOption::VALUE_OPTIONAL, 'Specify custom controller name'],
@@ -185,5 +192,4 @@ class GenerateUser extends Command {
             ['with-export', 'e', InputOption::VALUE_NONE, 'Generate an option to Export as Excel'],
         ];
     }
-
 }
